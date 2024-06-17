@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import { json, useActionData, Form, useSubmit } from "@remix-run/react";
-import OpenAI from "openai";
+import { useActionData, Form, useSubmit } from "@remix-run/react";
 import { ActionFunction, MetaFunction } from "@remix-run/node";
+import { chatCompletion } from "~/utils.server";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Chatbot with RAG" }];
@@ -10,19 +10,7 @@ export const meta: MetaFunction = () => {
 export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
   const prompt = formData.get("prompt") as string;
-  const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
-  try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [{ role: "user", content: prompt }],
-    });
-    return json({ response: response.choices[0].message?.content });
-  } catch (error: any) {
-    console.error({ error });
-    return json({ error: error.message }, { status: 500 });
-  }
+  return chatCompletion({ prompt });
 };
 
 export default function Chat() {
