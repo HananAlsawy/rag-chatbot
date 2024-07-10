@@ -1,12 +1,13 @@
 import { data } from "./data";
-import { createEmbedding, generateRandomInt, pcIndexName, pc, pcIndex } from "./utils.server.js";
+import { createEmbedding, generateRandomId, pcIndexName, pc, pcIndex } from "./utils.server.js";
 
 const listIndexes = await pc.listIndexes();
 const namesOflistIndexes = listIndexes?.indexes?.map((index) => index.name) || [];
+// check if index already exists
 if (namesOflistIndexes.includes(pcIndexName)) {
   await pc.createIndex({
     name: pcIndexName,
-    dimension: 1536,
+    dimension: 1536, // default dimension for text-embedding-ada-002
     metric: "cosine",
     spec: {
       serverless: {
@@ -18,7 +19,7 @@ if (namesOflistIndexes.includes(pcIndexName)) {
 }
 
 for (const record of data) {
-  const id = generateRandomInt();
+  const id = generateRandomId();
   const embeddings = await createEmbedding({ input: record.content });
   if (embeddings) {
     await pcIndex.upsert([
@@ -36,4 +37,4 @@ for (const record of data) {
   }
 }
 const stats = await pcIndex.describeIndexStats();
-console.log(stats);
+console.log(stats); // print index stats to the console
